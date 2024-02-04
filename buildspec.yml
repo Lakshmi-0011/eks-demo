@@ -45,5 +45,5 @@ phases:
       # Apply changes to our Application using kubectl
       - echo "Apply changes to kube manifests"
       - ls           
-      - kubectl apply -f manifests
+      - kubectl apply -f manifests/deployment.yml
       - echo "Completed applying changes to Kubernetes Objects"           
