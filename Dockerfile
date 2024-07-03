@@ -1,4 +1,4 @@
-FROM tomcat:9.0.1-jre8-alpine
+FROM tomcat:9.0.90-jre21-temurin-jammy
 
 # RUN mkdir -p /usr/local/tomcat/webapps/app
 
