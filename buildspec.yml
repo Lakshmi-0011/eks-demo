@@ -1,8 +1,9 @@
+version: 0.2
+
 phases:
   install:
     commands:
       - echo Installing app dependencies...
-      # Uncommented commands go here
       - wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
       - tar -xvf ZAP_2.14.0_Linux.tar.gz
     
@@ -10,7 +11,7 @@ phases:
     commands:
       - sed -i 's@CONTAINER_IMAGE@'"$IMAGE_REPO_NAME:$IMAGE_TAG"'@' manifests/deployment.yml
       - cat manifests/deployment.yml
-      - echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001  --password-stdin
+      - echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001 --password-stdin
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
      
