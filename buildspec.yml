@@ -71,6 +71,7 @@ phases:
       - kubectl get all 
       - LOAD_BALANCER_ADDRESS=$(kubectl get svc -o=jsonpath='{.items[?(@.spec.type=="LoadBalancer")].status.loadBalancer.ingress[0].hostname}')
       - echo "Load Balancer Address: $LOAD_BALANCER_ADDRESS"
+      # Example command to pass the load balancer address to OWASP ZAP for testing
       - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS"
       
 artifacts:
