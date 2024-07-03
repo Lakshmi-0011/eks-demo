@@ -1,46 +1,37 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: tomcat-service
-  # namespace: dev
-  labels:
-    app: sample-app
-spec:
-  type: LoadBalancer
-  selector:
-    app: sample-app
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tomcat-deployment
-  # namespace: dev
+  name: nodesy-deployment
   labels:
-    app: sample-app
+    app: nodesy-app
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: sample-app
+      app: nodesy-app
   template:
     metadata:
       labels:
-        app: sample-app
+        app: nodesy-app
     spec:
       containers:
-      - name: tomcat-app
-        image: CONTAINER_IMAGE
+      - name: nodesy-container
+        image: 891377353125.dkr.ecr.us-east-1.amazonaws.com/security-ecr1:v1.0.0.RELEASE
         ports:
-        - containerPort: 8080
-        resources:
-            requests:
-              memory: "128Mi"
-              cpu: "200m"
-            limits:
-              memory: "500Mi"
-              cpu: "400m"
+        - containerPort: 3000
+        
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodesy-service
+spec:
+  selector:
+    app: nodesy-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer

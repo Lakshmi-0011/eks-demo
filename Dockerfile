@@ -1,7 +1,26 @@
-FROM tomcat:9.0.90-jre21-temurin-jammy
+# Base Image
 
-# RUN mkdir -p /usr/local/tomcat/webapps/app
+FROM node:lts-alpine3.17
 
-ADD ./index.jsp /usr/local/tomcat/webapps
+# Set the working Directory
+WORKDIR /app
 
-CMD ["catalina.sh", "run"]
+# Copy Package.json
+
+COPY package*.json ./
+
+# Install Dependencies
+RUN npm install
+
+
+# Copy source code to the container work directory
+
+COPY . .
+
+# Expose Port
+
+EXPOSE 3000
+
+# Entry for CMD 
+
+CMD [ "node", "server.js" ]

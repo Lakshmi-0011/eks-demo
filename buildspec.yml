@@ -1,52 +1,83 @@
 version: 0.2
+
 phases:
   install:
     commands:
-      - echo "Install Phase - Nothing to do using latest Amazon Linux Docker Image for CodeBuild which has all AWS Tools - https://github.com/aws/aws-codebuild-docker-images/blob/master/al2/x86_64/standard/3.0/Dockerfile"
+      - echo Installing app dependencies...
+    #   - curl -LO https://dl.k8s.io/release/v1.27.2/bin/linux/amd64/kubectl   
+    #   - chmod +x ./kubectl
+    #   - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+    #   - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+    #   - source ~/.bashrc
+    #   - echo 'Check kubectl version'
+    #   - kubectl version --short --client
+    #   # Install Helm
+    #   - curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+    #   - chmod +x get_helm.sh
+    #   - ./get_helm.sh
+    #  # Hadolint installation 
+    #   -  echo "Downloading the Hadolint tool..."
+    #   -  wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64
+    #   -  sudo cp hadolint /usr/local/bin/hadolint
+    #   -  sudo chmod +x /usr/local/bin/hadolint
+    #   -  hadolint --version
+    #   #kubelinetr
+    #   - wget https://github.com/stackrox/kube-linter/releases/download/0.2.5/kube-linter-linux.tar.gz
+    #   - tar -xvf kube-linter-linux.tar.gz
+    #   - mv kube-linter /usr/local/bin/
+
+       # - yum install java-1.8.0-openjdk-devel
+      - wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
+      - tar -xvf ZAP_2.14.0_Linux.tar.gz
+    
   pre_build:
-      commands:
-        # Docker Image Tag with Date Time & Code Buiild Resolved Source Version
-        - TAG="$(date +%Y-%m-%d.%H.%M.%S).$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | head -c 8)"
-        # Update Image tag in our Kubernetes Deployment Manifest        
-        - echo "Update Image tag in kube-manifest..."
-        - sed -i 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$TAG"'@' manifests/deployment.yml
-        - cat manifests/deployment.yml
-        # Verify AWS CLI Version        
-        - echo "Verify AWS CLI Version..."
-        - aws --version
-        # docker hub creds to avoid rate limit for accessing images
-        #- echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001 --password-stdin
-        # Login to ECR Registry for docker to push the image to ECR Repository
-        - echo "Login in to Amazon ECR..."
-        # - $(aws ecr get-login --no-include-email)
-        - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
-        # - export KUBECONFIG=$HOME/.kube/config
+    commands:
+      
+      - echo $DOCKER_LOGIN_TOKEN | docker login --username ankitanagarale  --password-stdin
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+      # - IMAGE_REPO_NAME=891377353125.dkr.ecr.us-east-1.amazonaws.com/security-ecr1
+      # - IMAGE_TAG=v1.0.0.RELEASE
+     
+
+      
+
   build:
     commands:
-      # Build Docker Image
-      - echo "Build started on `date`"
-      - echo "Building the Docker image..."
-      - docker build --tag $REPOSITORY_URI:$TAG .
-      - docker push $REPOSITORY_URI:$TAG
+      - echo Build started on `date`
+      - echo "Build started on $(date)"
+    # building docker image   
+      - echo Building the Docker image...          
+      - docker build --tag $IMAGE_REPO_NAME:$IMAGE_TAG .
+ 
   post_build:
     commands:
-      # Push Docker Image to ECR Repository
-      - echo "Build completed on `date`"
-      - echo "Pushing the Docker image to ECR Repository"
-      # - docker push $REPOSITORY_URI:$TAG
-      - echo "Docker Image Push to ECR Completed -  $REPOSITORY_URI:$TAG"    
-      # Extracting AWS Credential Information using STS Assume Role for kubectl
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
+      - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo Push the latest image to cluster
+      # - kube-linter checks list
+      # - kube-linter lint deployment.yaml 2>&1 | tee kube-linter.log
       - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
-      - CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
+      - CREDENTIALS="$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)"
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
-      # Setup kubectl with our EKS Cluster              
       - echo "Update Kube Config"      
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
-      # Apply changes to our Application using kubectl
-      - echo "Apply changes to kube manifests"
-      - ls           
-      - kubectl apply -f manifests/deployment.yml
-      - echo "Completed applying changes to Kubernetes Objects"           
+      - kubectl apply -f manifests/deployment.yaml
+      - kubectl get all 
+      - kubectl get pods
+      - kubectl get svc
+      - sleep 60 
+      - kubectl get all 
+      # - LB_ADDRESS=$(kubectl get svc  -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+      # - echo $LB_ADDRESS
+      # - ./ZAP_2.14.0/zap.sh -cmd -quickurl http://ae62073c5686f4888a2c97f09517e8ca-2062434387.us-east-1.elb.amazonaws.com/ -quickprogress -quickout ../zap_report.html
+
+      
+artifacts:
+  files:
+    - zap_report.html
+  
