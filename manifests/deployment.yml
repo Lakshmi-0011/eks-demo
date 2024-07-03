@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nodesy-container
-        image: 891377353125.dkr.ecr.us-east-1.amazonaws.com/security-ecr1:v1.0.0.RELEASE
+        image: CONTAINER_IMAGE
         ports:
         - containerPort: 3000
         
