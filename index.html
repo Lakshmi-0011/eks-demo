@@ -1,32 +1,56 @@
-
 <!DOCTYPE html>
+<html lang="en">
 <head>
-    <title> Developer Learning </title>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-  </head>
-  <body>
-    <div style="margin:6px;">
-      <nav class="navbar navbar-inverse navbar-static-top">
-    <div class="container">
-      <a class="navbar-brand" href="/"> Welcome to My Learning Space  </a>
-      <ul class="nav navbar-nav">
-        <li class="active">
-          <a href="/"> Home </a>
-        </li>
-        <li>
-          <a href="/about"> About </a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-      <div class="jumbotron"  style="padding:40px;">
-        <h1> This is a Hello Message from  <span class="text-primary"> Ankita </span><span class="text-danger"> Learning Space </span></h1>
-        <p> Congratualtions Ankita <span class="bg-info"> For </span> Building this Nodejs Project <span class="bg-success"> From Scratch </span></p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Keep Winning</a></p>
-      </div>
-    </div>
-  </body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Simple Website</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        .showcase {
+            min-height: 400px;
+            text-align: center;
+            color: #333;
+            padding: 20px;
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Simple Website</h1>
+    </header>
+    <section class="showcase">
+        <div class="container">
+            <h2>Deployed on EKS using AWS CodePipeline</h2>
+            <p>This is a simple HTML page deployed to an EKS cluster.</p>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; 2024 My Simple Website</p>
+    </footer>
+</body>
 </html>
