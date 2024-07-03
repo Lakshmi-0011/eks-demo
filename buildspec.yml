@@ -41,7 +41,7 @@ phases:
       - sleep 60 
       - kubectl get all 
        # Extract Load Balancer address
-      - LOAD_BALANCER_ADDRESS=$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip')
+      - LOAD_BALANCER_ADDRESS="$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip')"
       - echo "Load Balancer Address: $LOAD_BALANCER_ADDRESS"
       - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS" -htmlreport zap_report.html
       
