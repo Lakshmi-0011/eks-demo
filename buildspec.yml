@@ -44,7 +44,7 @@ phases:
        # Extract Load Balancer address
       - LOAD_BALANCER_ADDRESS="$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip')"
       - echo "lb address = $LOAD_BALANCER_ADDRESS"
-      - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS" -htmlreport zap_report.html
+      - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS" -quickprogress -quickout ../zap_report.html
       
 artifacts:
   files:
