@@ -15,7 +15,7 @@ phases:
         - echo "Verify AWS CLI Version..."
         - aws --version
         # docker hub creds to avoid rate limit for accessing images
-        - echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001 --password-stdin
+        #- echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001 --password-stdin
         # Login to ECR Registry for docker to push the image to ECR Repository
         - echo "Login in to Amazon ECR..."
         # - $(aws ecr get-login --no-include-email)
