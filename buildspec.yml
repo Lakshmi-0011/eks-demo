@@ -20,6 +20,8 @@ phases:
       - echo Installing app dependencies...
       - wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
       - tar -xvf ZAP_2.14.0_Linux.tar.gz
+      # check aws installed or not
+      - aws --version
     
   pre_build:
     commands:
