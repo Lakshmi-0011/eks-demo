@@ -49,6 +49,8 @@ phases:
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
+      - echo $AWS_ACCESS_KEY_ID
+      - echo $AWS_SECRET_ACCESS_KEY
       - echo Update Kube Config
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
       - eksctl create iamidentitymapping --cluster $EKS_CLUSTER_NAME --region=$REGION --arn $EKS_KUBECTL_ROLE_ARN --username build --group system:masters
