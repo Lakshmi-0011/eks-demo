@@ -3,7 +3,8 @@ version: 0.2
 phases:
   install:
     commands:
-      # install eksctl
+      - echo Installing app dependencies...
+      # eksctl creation
       - ARCH=amd64
       - PLATFORM=$(uname -s)_$ARCH
       - curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
@@ -11,31 +12,39 @@ phases:
       - tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
       - sudo mv /tmp/eksctl /usr/local/bin  
       - eksctl version
-      #install kubectl 
-      - curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.30.0/2024-05-12/bin/linux/amd64/kubectl
+      # kubectl installation
+      - curl -LO https://dl.k8s.io/release/v1.27.2/bin/linux/amd64/kubectl   
       - chmod +x ./kubectl
-      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
-      - kubectl version --client
-      # install owasp zap  
-      - echo Installing app dependencies...
+      - mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$PATH:$HOME/bin
+      - echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+      - source ~/.bashrc
+      - echo 'Check kubectl version'
+      - kubectl version --short --client
+      # owasp installation
       - wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2.14.0_Linux.tar.gz
       - tar -xvf ZAP_2.14.0_Linux.tar.gz
-      # check aws installed or not
-      - aws --version
     
   pre_build:
     commands:
-      - sed -i 's@CONTAINER_IMAGE@'"$IMAGE_REPO_NAME:$IMAGE_TAG"'@' manifests/deployment.yml
-      - cat manifests/deployment.yml
-      - echo $DOCKER_LOGIN_TOKEN | docker login --username assignment001 --password-stdin
+      
+      - echo $DOCKER_LOGIN_TOKEN | docker login --username ankitanagarale  --password-stdin
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 891377353125.dkr.ecr.us-east-1.amazonaws.com
+      - IMAGE_REPO_NAME=891377353125.dkr.ecr.us-east-1.amazonaws.com/security-ecr1
+      - IMAGE_TAG=v1.0.0.RELEASE
      
+
+      
+
   build:
     commands:
       - echo Build started on `date`
       - echo "Build started on $(date)"
-      - echo Building the Docker image...
+      - echo "Validating the Dockerfile using Hadolint tool..."
+    #  Docker file validation using Hadolint 
+      - hadolint --config hadolint.yml Dockerfile 2>&1 | tee hadolint.log
+    # building docker image   
+      - echo Building the Docker image...          
       - docker build --tag $IMAGE_REPO_NAME:$IMAGE_TAG .
  
   post_build:
@@ -44,27 +53,30 @@ phases:
       - echo Pushing the Docker image...
       - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
       - echo Push the latest image to cluster
+      - kube-linter checks list
+      - kube-linter lint deployment.yaml 2>&1 | tee kube-linter.log
+      - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
       - CREDENTIALS="$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)"
       - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
       - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
-      - echo $AWS_ACCESS_KEY_ID
-      - echo $AWS_SECRET_ACCESS_KEY
-      - echo Update Kube Config
+      - echo "Update Kube Config"      
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
-      - eksctl create iamidentitymapping --cluster $EKS_CLUSTER_NAME --region=$REGION --arn $EKS_KUBECTL_ROLE_ARN --username build --group system:masters
-      - kubectl apply -f ./manifests/deployment.yml 
-      # - kubectl get all 
+      - kubectl apply -f deployment.yaml
+      - kubectl get all 
       - kubectl get pods
       - kubectl get svc
       - sleep 60 
       - kubectl get all 
-       # Extract Load Balancer address
-      - LOAD_BALANCER_ADDRESS="$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname')"
-      - echo "lb address = $LOAD_BALANCER_ADDRESS"
-      - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS" -quickprogress -quickout ../zap_report.html
+      # - LB_ADDRESS=$(kubectl get svc  -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+      # - echo $LB_ADDRESS
+      - ./ZAP_2.14.0/zap.sh -cmd -quickurl http://ae62073c5686f4888a2c97f09517e8ca-2062434387.us-east-1.elb.amazonaws.com/ -quickprogress -quickout ../zap_report.html
+
       
 artifacts:
   files:
+    - hadolint.log
+    - kube-linter.log
     - zap_report.html
+  
