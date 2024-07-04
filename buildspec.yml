@@ -36,13 +36,13 @@ phases:
       - echo Update Kube Config
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
       - kubectl apply -f ./manifests/deployment.yml 
-      - kubectl get all 
+      # - kubectl get all 
       - kubectl get pods
       - kubectl get svc
       - sleep 60 
       - kubectl get all 
        # Extract Load Balancer address
-      - LOAD_BALANCER_ADDRESS="$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip')"
+      - LOAD_BALANCER_ADDRESS="$(kubectl get svc nodesy-service -o json | jq -r '.status.loadBalancer.ingress[0].hostname')"
       - echo "lb address = $LOAD_BALANCER_ADDRESS"
       - ./ZAP_2.14.0/zap.sh -cmd -quickurl "http://$LOAD_BALANCER_ADDRESS" -quickprogress -quickout ../zap_report.html
       
