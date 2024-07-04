@@ -51,7 +51,6 @@ phases:
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
       - echo Update Kube Config
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
-      - kubectl get nodes
       - eksctl create iamidentitymapping --cluster $EKS_CLUSTER_NAME --region=$REGION --arn $EKS_KUBECTL_ROLE_ARN --username build --group system:masters
       - kubectl apply -f ./manifests/deployment.yml 
       # - kubectl get all 
